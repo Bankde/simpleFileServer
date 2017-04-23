@@ -19,19 +19,26 @@ class myServer(BaseHTTPRequestHandler):
         if len(s) > 0:
             back = "/".join(s[:-1])
 
-        print back
+        if folder == "":
+            self.wfile.write("<font size=6>/</font><br>-----------------------<br><br>")
+        else:
+            self.wfile.write("<font size=5>"+folder+"</font><br>-----------------------<br><br>")
 
         if back == "":
-            self.wfile.write("<a href=\"/\">..</a><br>")
+            self.wfile.write("<font size=6><a href=\"/\">..</a></font><br>")
         else:
             self.wfile.write("<a href=\"" + back + "\">..</a><br>")
             
         files = os.listdir(self.dir + folder)
         for f in files:
-            self.wfile.write("<a href=\"" + folder + "/" + f + "\">" + f + "</a><br>")
+            if os.path.isfile(self.dir + folder + "/" + f):
+                self.wfile.write(f + "&nbsp;&nbsp;&nbsp;<u><a href=\"" + folder + "/" + f + "\">Download</a></u>&nbsp;&nbsp;&nbsp;<u><a href=\"" + folder + "/" + f + "?read\">Text</a></u><br>")
+            else:
+                self.wfile.write("<u><a href=\"" + folder + "/" + f + "\">" + f + "</a></u><br>")
 
     def do_GET(self):
         parsed_path = urlparse.urlparse(self.path)
+        # print parsed_path
         # ParseResult(scheme='', netloc='', path='/test/hi', params='', query='a=b', fragment='')
         path = parsed_path.path
         while True:
@@ -56,7 +63,11 @@ class myServer(BaseHTTPRequestHandler):
                 self._set_headers(200)
                 self._list_files(path)
             elif os.path.isfile(file_path):
-                self._set_headers(200, "application/octet-stream")
+                if parsed_path.query == "read":
+                    self._set_headers(200, "text/plain")
+                else:
+                    self._set_headers(200, "application/octet-stream")
+
                 f = file(file_path, "r")
                 for line in f:
                     self.wfile.write(line)
