@@ -54,7 +54,12 @@ class myServer(BaseHTTPRequestHandler):
             self._set_headers(200)
             self._list_files("")
         else:
-            file_path = self.dir + path
+            _input_path = self.dir + path
+            file_path = os.path.normpath(_input_path)
+            if not file_path.startswith(self.dir):
+                file_path = self.dir
+                path = ""
+
             # print("filepath is %s" % file_path)
             if os.path.islink(file_path):
                 self._set_headers(404)
